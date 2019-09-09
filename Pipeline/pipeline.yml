@@ -1,0 +1,51 @@
+trigger:
+- master
+
+pr:
+- master
+
+variables:
+  tenantAdminUsername-integration: 'jonathan.eckman@integration.onmicrosoft.com'
+  tenantAdminUsername-staging: 'jonathan.eckman@staging.onmicrosoft.com'
+  tenantAdminUsername-production: 'jonathan.eckman@production.onmicrosoft.com'
+  tenantUrl-integration: 'integration.sharepoint.com'
+  tenantUrl-staging: 'staging.sharepoint.com'
+  tenantUrl-production: 'production.sharepoint.com'
+
+stages:
+- stage: Build
+  displayName: Build
+  jobs:
+    - template: build.yml
+
+- stage: Integration
+  condition: ne(variables['Build.Reason'], 'PullRequest')
+  jobs:
+  - template: deploy.yml
+    parameters:
+      environment: 'Integration'
+      tenantAdminUsername: $(tenantAdminUsername-integration)
+      tenantAdminPassword: $(tenantAdminPassword-integration)
+      tenantUrl: $(tenantUrl-integration)
+
+- stage: Staging
+  condition: ne(variables['Build.Reason'], 'PullRequest')
+  jobs:
+  - template: deploy.yml
+    parameters:
+      environment: 'Staging'
+      tenantAdminUsername: $(tenantAdminUsername-staging)
+      tenantAdminPassword: $(tenantAdminPassword-staging)
+      tenantUrl: $(tenantUrl-staging)
+    
+
+- stage: Production
+  condition: ne(variables['Build.Reason'], 'PullRequest')
+  jobs:
+  - template: deploy.yml
+    parameters:
+      environment: 'Production'
+      tenantAdminUsername: $(tenantAdminUsername-production)
+      tenantAdminPassword: $(tenantAdminPassword-production)
+      tenantUrl: $(tenantUrl-production)
+                  

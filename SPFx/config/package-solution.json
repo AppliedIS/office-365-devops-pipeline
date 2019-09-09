@@ -1,0 +1,15 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx-build/package-solution.schema.json",
+  "solution": {
+    "name": "ais-webpart-client-side-solution",
+    "title": "AIS Web Parts",
+    "id": "6ac6a728-123e-4a20-b031-72e53b55e810",
+    "version": "1.0.0.0",
+    "includeClientSideAssets": true,
+    "skipFeatureDeployment": true,
+    "isDomainIsolated": false
+  },
+  "paths": {
+    "zippedPackage": "solution/ais-webpart.sppkg"
+  }
+}

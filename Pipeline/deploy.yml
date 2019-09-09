@@ -1,0 +1,37 @@
+parameters:
+  environment: '' 
+  tenantAdminUsername: ''
+  tenantAdminPassword: ''
+  tenantUrl: ''
+
+jobs:
+  - deployment: Deploy
+    pool:
+      vmImage: 'vs2017-win2016'
+    environment: ${{ parameters.environment }}
+    strategy:
+      runOnce:
+        deploy:
+          steps:   
+            - powershell: |
+                Install-PackageProvider -Name NuGet -Force -Scope CurrentUser
+                Install-Module -Name SharePointPnPPowerShellOnline -Force -Verbose -Scope CurrentUser
+              displayName: 'Install PnP PowerShell'
+
+            - powershell: |
+                # Create a connection
+                $secureStringPassword = ConvertTo-SecureString -String "$env:TENANT_ADMIN_PASSWORD" -AsPlainText -Force
+                $creds = New-Object system.management.automation.pscredential -ArgumentList "${{ parameters.tenantAdminUsername }}", $secureStringPassword
+                Connect-PnPOnline -Url "https://${{ parameters.tenantUrl }}" -Credentials $creds
+
+                # Prepare the pnp template params then deploy
+                $params = @{
+                    TenantUrl = "${{ parameters.tenantUrl }}"
+                    SiteOwner = "${{ parameters.tenantAdminUsername }}"
+                }
+                
+                $(Pipeline.Workspace)/drop/Provisioning/deploy.ps1 -Params $params
+              env:
+                TENANT_ADMIN_PASSWORD: ${{ parameters.tenantAdminPassword }}
+              displayName: 'Deploy package'
+              

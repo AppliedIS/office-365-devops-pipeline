@@ -1,0 +1,83 @@
+jobs:
+  - job: build
+    pool:
+      vmImage: 'vs2017-win2016'
+      demands:
+      - npm
+      - node.js
+
+    variables:
+      workingDir: 'SPFx'
+
+    steps:
+
+    - task: NodeTool@0
+      displayName: 'Use Node 10.x'
+      inputs:
+        versionSpec: 10.x
+        checkLatest: true
+
+    - task: Npm@1
+      displayName: 'Install dependencies'
+      inputs:
+        workingDir: '$(workingDir)'
+        verbose: false
+    
+    - task: Npm@1
+      displayName: 'Run unit tests'
+      inputs:
+        command: custom
+        customCommand: 'test'
+        workingDir: '$(workingDir)'
+        verbose: false
+
+    - task: PublishTestResults@2
+      displayName: 'Publish test results'
+      inputs:
+        testResultsFiles: 'junit.xml'
+        searchFolder: '$(workingDir)'
+
+    - task: PublishCodeCoverageResults@1
+      displayName: 'Publish test coverage results'
+      inputs:
+        codeCoverageTool: Cobertura
+        summaryFileLocation: '$(workingDir)/temp/test/cobertura-coverage.xml'
+        reportDirectory: '$(workingDir)/temp/test/'
+
+    - task: Gulp@0
+      displayName: 'Bundle the solution'
+      inputs:
+        gulpFile: '$(workingDir)/gulpfile.js'
+        targets: bundle
+        arguments: '--ship'
+
+    - task: Gulp@0
+      displayName: 'Package the solution'
+      inputs:
+        gulpFile: '$(workingDir)/gulpfile.js'
+        targets: 'package-solution'
+        arguments: '--ship'
+
+    - powershell: |
+        Install-PackageProvider -Name NuGet -Force -Scope CurrentUser
+        Install-Module -Name SharePointPnPPowerShellOnline -Force -Verbose -Scope CurrentUser
+      displayName: 'Install PnP PowerShell'
+
+    - task: PowerShell@2
+      displayName: 'Build provisioning template'
+      inputs:
+        targetType: filePath
+        filePath: ./Provisioning/build.ps1
+
+    - task: CopyFiles@2
+      displayName: 'Stage deployment files'
+      inputs:
+        Contents: |
+          Provisioning/**
+        TargetFolder: '$(Build.ArtifactStagingDirectory)'
+
+    - task: PublishPipelineArtifact@1
+      displayName: 'Publish build artifacts'
+      inputs:
+        path: '$(Build.ArtifactStagingDirectory)'
+        artifact: drop

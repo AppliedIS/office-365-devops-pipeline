@@ -1,0 +1,78 @@
+<?xml version="1.0"?>
+<pnp:Provisioning xmlns:pnp="http://schemas.dev.office.com/PnP/2018/07/ProvisioningSchema" 
+  Author="Applied Information Sciences" 
+  Generator="Applied Information Sciences" 
+  Version="1.0" 
+  Description="Provisions demo O365 configuration." 
+  DisplayName="Applied Information Sciences Demo Template" 
+  ImagePreviewUrl="">
+  <pnp:Preferences Generator="OfficeDevPnP.Core, Version=3.1.1809.0, Culture=neutral, PublicKeyToken=null">
+    <pnp:Parameters>
+      <pnp:Parameter Key="TenantUrl">mytenant.sharepoint.com</pnp:Parameter>
+      <pnp:Parameter Key="SiteOwner">jonathan.eckman@mytenant.onmicrosoft.com</pnp:Parameter>
+    </pnp:Parameters>
+  </pnp:Preferences>
+  <pnp:Tenant>
+    <pnp:AppCatalog>
+      <pnp:Package Action="UploadAndPublish" 
+        Overwrite="true" 
+        Src="apps\ais-webpart.sppkg" />
+    </pnp:AppCatalog>
+  </pnp:Tenant>
+
+  <pnp:Sequence ID="main-sequence">
+    <pnp:SiteCollections>
+      <pnp:SiteCollection xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+        xsi:type="pnp:CommunicationSite" 
+        ProvisioningId="demosite" 
+        Owner="{parameter:SiteOwner}" 
+        Url="https://{parameter:TenantUrl}/sites/demosite" 
+        Title="DemoSite" 
+        IsHubSite="false" 
+        Description="Demo Site Collection" 
+        Language="1033">
+        <pnp:Templates>
+          <pnp:ProvisioningTemplateReference ID="demo-site" />
+        </pnp:Templates>
+      </pnp:SiteCollection>
+    </pnp:SiteCollections>
+  </pnp:Sequence>
+
+  <pnp:Templates ID="ais-templates">
+    <pnp:ProvisioningTemplate ID="demo-site" 
+      Version="1.0" 
+      xmlns:pnp="http://schemas.dev.office.com/PnP/2018/07/ProvisioningSchema">
+
+      <pnp:ApplicationLifecycleManagement>
+        <pnp:Apps>
+          <pnp:App AppId="{AppPackageId:AIS Web Parts}" 
+            Action="Install" 
+            SyncMode="Synchronously" />
+        </pnp:Apps>
+      </pnp:ApplicationLifecycleManagement>
+
+      <pnp:ClientSidePages>
+        <pnp:ClientSidePage PageName="Demo.aspx" 
+          PromoteAsNewsArticle="false" 
+          Overwrite="true" 
+          EnableComments="true" 
+          Title="Demo"
+          Layout="Article">
+          <pnp:Sections>
+            <pnp:Section Order="1" 
+              Type="OneColumn">
+              <pnp:Controls>
+                <!-- ControlId is the webpart id in the webparts manifest -->
+                <pnp:CanvasControl WebPartType="Custom" 
+                  ControlId="b49cb798-af20-4190-b793-0c636b60c73a" 
+                  Order="1" />
+              </pnp:Controls>
+            </pnp:Section>
+          </pnp:Sections>
+          <pnp:Header Type="Default" />
+        </pnp:ClientSidePage>
+      </pnp:ClientSidePages>
+
+    </pnp:ProvisioningTemplate>
+  </pnp:Templates>
+</pnp:Provisioning>
